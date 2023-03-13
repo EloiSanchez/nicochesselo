@@ -1,4 +1,6 @@
 import lichess_api
+import sf_connection
 
+games = lichess_api.get_default_games(n_users = 2, n_games = 10)
 
-games = lichess_api.get_default_games(n_users = 5, n_games = 20)
+sf_connection.add_games(games)

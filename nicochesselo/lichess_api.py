@@ -1,6 +1,7 @@
 import json
 import requests
 import chess.pgn as pgn
+from chess import IllegalMoveError
 import io
 
 
@@ -32,6 +33,7 @@ def get_streamers():
         ), 'name'))
 
 
+# TODO: Get game by ID
 def get_games(usernames, n = 100):
     usernames = [usernames] if type(usernames) == str else usernames
 
@@ -44,10 +46,10 @@ def get_games(usernames, n = 100):
     games = []
     for user in usernames:
         print(f'getting {user}')
-        games.append(_parse_games(
+        games += _parse_games(
             requests.get(f'https://lichess.org/api/games/user/{user}',
                          params = game_info_params)
-        ))
+        )
     return games
 
 
@@ -55,10 +57,14 @@ def _parse_games(response):
     games = []
     with io.StringIO(response.text) as games_text:
         while True:
+            # TODO: Silence errors
             game = pgn.read_game(games_text)
 
             if game is None:
                 break
+
+            if len(game.errors) > 0:
+                continue
 
             games.append(game)
     return games
@@ -69,3 +75,7 @@ def get_default_games(n_users=200, n_games=100):
         get_leaderboard(n=n_users).union(get_streamers()),
         n=n_games
         )
+
+
+def get_player_info(username):
+    return _resp_to_json(requests.get(f'https://lichess.org/api/user/{username}'))
