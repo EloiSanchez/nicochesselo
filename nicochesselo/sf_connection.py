@@ -72,18 +72,6 @@ def _get_games_info(game_list):
     return players, games, moves, openings
 
 
-def _parse_moves(game):
-    info_moves = str(game.mainline()).split()
-    moves = set()
-    for i in range(0, len(info_moves), 3):
-        move_num, white, black = info_moves[i:i+3]
-        moves.union(
-            (
-                (move_num[:-1], )
-            )
-        )
-
-
 # TODO: Probably not used
 def get_players(game):
     return {'white': game.headers['White'],
