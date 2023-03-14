@@ -2,7 +2,6 @@ import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 import pandas as pd
 import lichess_api
-import os
 
 
 con = snowflake.connector.connect(
@@ -15,14 +14,13 @@ con = snowflake.connector.connect(
 )
 
 
-
 def add_games(games):
     players, games, moves, openings = _get_games_info(games)
 
     games = [games] if type(games) == tuple else games
- 
+
     df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','DATE'))
-    print(df.to_string())
+
     write_pandas(con, df, 'GAMES')
 
     add_players(players)
@@ -51,14 +49,15 @@ def add_moves(moves):
 
 def _get_games_info(game_list):
     players, games, moves, openings = set(), set(), set(), set()
-    for game_id, game in enumerate(game_list):
+    for game in game_list:
         # Get players information
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
 
+        game_id = game.headers['Site'].split(".org/")[1][0:8]
         try:
             games = games.union(
-                ((game.headers['Site'].split(".org/")[1][0:8],
+                ((game_id,
                 game.headers['Event'],
                 game.headers['White'],
                 game.headers['Black'],
@@ -67,11 +66,11 @@ def _get_games_info(game_list):
                 None if game.headers['WhiteElo'] =='?' else game.headers['WhiteElo'],
                 None if game.headers['BlackElo'] =='?' else game.headers['BlackElo'],
                 game.headers['Date']),)
-            ) 
+            )
         except Exception:
             game.headers['Site'] = "NULL"
-        
-        
+
+
         # Get opening information
         try:
             openings = openings.union(((game.headers['Opening'], game.headers['ECO']), ))
@@ -98,7 +97,7 @@ def _get_games_info(game_list):
 
             moves = moves.union(moves_to_add)
 
-    return players, games, moves, openings 
+    return players, games, moves, openings
 
 
 def restart_database():
