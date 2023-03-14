@@ -21,6 +21,7 @@ con = snowflake.connector.connect(
 def add_games(games):
     players, games, moves, openings = _get_games_info(games)
     add_players(players)
+    add_openings(openings)
 
 
 def add_players(players):
@@ -29,16 +30,47 @@ def add_players(players):
     statement = f"INSERT INTO players(player_id) VALUES "
     statement += ','.join(f"('{player}')" for player in players) + ';'
 
-    con.execute_string(statement)
+    # print(statement)
+    # con.execute_string(statement)
+
+
+def add_openings(openings):
+    statement = "INSERT INTO openings(opening_id, ECO) VALUES "
+    statement += ','.join(
+        [f"('{op['opening_id']}','{op['ECO']}')" for op in openings]
+        )
+    # print(statement)
+    # con.execute_string(statement)
+
 
 
 def _get_games_info(game_list):
-    players, games, moves, openings = set(), set(), set(), set()
+    players, games, moves, openings = set(), [], [], []
     for game in game_list:
+        # Get players information
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
+        
+        # Get opening information
+        try:
+            openings.append(
+                {'opening_id': game.headers['Opening'], 
+                 'ECO': game.headers['ECO']}
+                )
+        except Exception:
+            opening_id = 'NULL'
+            
+        # Get move information
+        # _parse_moves(game)
 
     return players, games, moves, openings
+
+
+def _parse_moves(game):
+    info_moves = str(game.mainline()).split()
+    for i in range():
+        pass
+    
 
 # TODO: Probably not used
 def get_players(game):
