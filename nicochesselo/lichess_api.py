@@ -73,7 +73,7 @@ def _parse_games(response):
 
 def get_default_games(n_users=200, n_games=100):
     return get_games(
-        get_leaderboard(n=n_users).union(get_streamers()),
+        get_leaderboard(n=n_users),
         n=n_games
         )
 
