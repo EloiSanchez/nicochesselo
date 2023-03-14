@@ -54,8 +54,8 @@ def _get_games_info(game_list):
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
 
-        game_id = game.headers['Site'].split(".org/")[1][0:8]
         try:
+            game_id = game.headers['Site'].split(".org/")[1][0:8]
             games = games.union(
                 ((game_id,
                 game.headers['Event'],
@@ -67,35 +67,34 @@ def _get_games_info(game_list):
                 None if game.headers['BlackElo'] =='?' else game.headers['BlackElo'],
                 game.headers['Date']),)
             )
-        except Exception:
-            game.headers['Site'] = "NULL"
 
+            # Get move information
+            info_moves = str(game.mainline()).split()
+
+            for i in range(0, len(info_moves), 3):
+                next_move = info_moves[i:i+3]
+                if next_move[0][0] in '123456789' and len(next_move) == 3:
+                    move_num, white, black = info_moves[i:i+3]
+                    moves_to_add = (
+                        (game_id, f'{move_num[:-1]}w', white),
+                        (game_id, f'{move_num[:-1]}b', black),
+                    )
+                # When the last move is made by white
+                elif next_move[0][0] in '123456789' and len(next_move) == 2:
+                    move_num, white = info_moves[i:i+2]
+                    moves_to_add = ((game_id, f'{move_num[:-1]}w', white), )
+                else:
+                    break
+
+                moves = moves.union(moves_to_add)
+        except Exception:
+            pass
 
         # Get opening information
         try:
             openings = openings.union(((game.headers['Opening'], game.headers['ECO']), ))
         except Exception:
-            opening_id = 'NULL'
-
-        # Get move information
-        info_moves = str(game.mainline()).split()
-
-        for i in range(0, len(info_moves), 3):
-            next_move = info_moves[i:i+3]
-            if next_move[0][0] in '123456789' and len(next_move) == 3:
-                move_num, white, black = info_moves[i:i+3]
-                moves_to_add = (
-                    (game_id, f'{move_num[:-1]}w', white),
-                    (game_id, f'{move_num[:-1]}b', black),
-                )
-            # When the last move is made by white
-            elif next_move[0][0] in '123456789' and len(next_move) == 2:
-                move_num, white = info_moves[i:i+2]
-                moves_to_add = ((game_id, f'{move_num[:-1]}w', white), )
-            else:
-                break
-
-            moves = moves.union(moves_to_add)
+            pass
 
     return players, games, moves, openings
 
