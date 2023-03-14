@@ -40,7 +40,8 @@ def get_games(usernames, n = 100):
     game_info_params = {
         'max' : f'{n}',
         'perfType' : ','.join(DEFAULT_GAME_TYPES),
-        'evals' : 'false'
+        'evals' : 'false',
+        'opening': 'true'
     }
 
     games = []
