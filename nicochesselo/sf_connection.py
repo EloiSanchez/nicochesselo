@@ -1,4 +1,6 @@
 import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
+import pandas as pd
 import lichess_api
 import os
 
@@ -27,25 +29,19 @@ def add_games(games):
 def add_players(players):
     players = [players] if type(players) == str else players
 
-    statement = f"INSERT INTO players(player_id) VALUES "
-    statement += ','.join(f"('{player}')" for player in players) + ';'
-
-    # print(statement)
-    # con.execute_string(statement)
+    df = pd.DataFrame(players, columns=('PLAYER_ID',))
+    write_pandas(con, df, 'PLAYERS')
 
 
 def add_openings(openings):
-    statement = "INSERT INTO openings(opening_id, ECO) VALUES "
-    statement += ','.join(
-        [f"('{op['opening_id']}','{op['ECO']}')" for op in openings]
-        )
-    # print(statement)
-    # con.execute_string(statement)
-
+    openings = [openings] if type(openings) == tuple else openings
+    
+    df = pd.DataFrame(openings, columns=('OPENING_ID', 'ECO'))
+    write_pandas(con, df, table_name='OPENINGS', database='CHESS_DB', schema='CHESS_SCH')
 
 
 def _get_games_info(game_list):
-    players, games, moves, openings = set(), [], [], []
+    players, games, moves, openings = set(), set(), set(), set()
     for game in game_list:
         # Get players information
         players = players.union((game.headers['White'], game.headers['Black']))
@@ -53,10 +49,7 @@ def _get_games_info(game_list):
         
         # Get opening information
         try:
-            openings.append(
-                {'opening_id': game.headers['Opening'], 
-                 'ECO': game.headers['ECO']}
-                )
+            openings = openings.union(((game.headers['Opening'], game.headers['ECO']), ))
         except Exception:
             opening_id = 'NULL'
             
@@ -66,10 +59,14 @@ def _get_games_info(game_list):
     return players, games, moves, openings
 
 
-def _parse_moves(game):
-    info_moves = str(game.mainline()).split()
-    for i in range():
-        pass
+# def _parse_moves(game):
+#     info_moves = str(game.mainline()).split()
+#     moves = []
+#     for i in range(0, len(info_moves), 3):
+#         move_num, white, black = info_moves[i:i+3]
+#         moves.append(
+#             {'move_id': f'{move_num.}'}
+#             )
     
 
 # TODO: Probably not used
