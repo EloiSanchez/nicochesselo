@@ -14,8 +14,17 @@ con = snowflake.connector.connect(
     schema='CHESS_SCH'
 )
 
+
+
 def add_games(games):
     players, games, moves, openings = _get_games_info(games)
+
+    games = [games] if type(games) == tuple else games
+ 
+    df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','DATE'))
+    print(df.to_string())
+    write_pandas(con, df, 'GAMES')
+
     add_players(players)
     add_openings(openings)
     add_moves(moves)
@@ -47,6 +56,22 @@ def _get_games_info(game_list):
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
 
+        try:
+            games = games.union(
+                ((game.headers['Site'].split(".org/")[1][0:8],
+                game.headers['Event'],
+                game.headers['White'],
+                game.headers['Black'],
+                game.headers['Opening'],
+                game.headers['Result'],
+                None if game.headers['WhiteElo'] =='?' else game.headers['WhiteElo'],
+                None if game.headers['BlackElo'] =='?' else game.headers['BlackElo'],
+                game.headers['Date']),)
+            ) 
+        except Exception:
+            game.headers['Site'] = "NULL"
+        
+        
         # Get opening information
         try:
             openings = openings.union(((game.headers['Opening'], game.headers['ECO']), ))
@@ -73,7 +98,7 @@ def _get_games_info(game_list):
 
             moves = moves.union(moves_to_add)
 
-    return players, games, moves, openings
+    return players, games, moves, openings 
 
 
 def restart_database():
