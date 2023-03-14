@@ -1,4 +1,6 @@
 import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
+import pandas as pd
 import lichess_api
 import os
 
@@ -18,10 +20,19 @@ con = snowflake.connector.connect(
     schema='CHESS_SCH'
 )
 
+
+
 def add_games(games):
     players, games, moves, openings = _get_games_info(games)
-    add_players(players)
-    add_openings(openings)
+
+    games = [games] if type(games) == tuple else games
+    # add_players(players)
+    # add_openings(openings)
+    
+    df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','DATE'))
+    print(df.to_string())
+    write_pandas(con, df, 'GAMES')
+
 
 
 def add_players(players):
@@ -45,11 +56,27 @@ def add_openings(openings):
 
 
 def _get_games_info(game_list):
-    players, games, moves, openings = set(), [], [], []
+    players, games, moves, openings = set(), set(), [], []
     for game in game_list:
         # Get players information
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
+
+        try:
+            games = games.union(
+                ((game.headers['Site'].split(".org/")[1][0:8],
+                game.headers['Event'],
+                game.headers['White'],
+                game.headers['Black'],
+                game.headers['Opening'],
+                game.headers['Result'],
+                None if game.headers['WhiteElo'] =='?' else game.headers['WhiteElo'],
+                None if game.headers['BlackElo'] =='?' else game.headers['BlackElo'],
+                game.headers['Date']),)
+            ) 
+        except Exception:
+            game.headers['Site'] = "NULL"
+        
         
         # Get opening information
         try:
@@ -63,7 +90,7 @@ def _get_games_info(game_list):
         # Get move information
         # _parse_moves(game)
 
-    return players, games, moves, openings
+    return players, games, moves, openings 
 
 
 def _parse_moves(game):
