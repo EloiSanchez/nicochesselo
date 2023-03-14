@@ -24,6 +24,7 @@ def add_games(games):
     players, games, moves, openings = _get_games_info(games)
     add_players(players)
     add_openings(openings)
+    add_moves(moves)
 
 
 def add_players(players):
@@ -35,39 +36,59 @@ def add_players(players):
 
 def add_openings(openings):
     openings = [openings] if type(openings) == tuple else openings
-    
+
     df = pd.DataFrame(openings, columns=('OPENING_ID', 'ECO'))
-    write_pandas(con, df, table_name='OPENINGS', database='CHESS_DB', schema='CHESS_SCH')
+    write_pandas(con, df, 'OPENINGS')
+
+
+def add_moves(moves):
+    df = pd.DataFrame(moves, columns=('GAME_ID','MOVE_ID', 'MOVE'))
+    write_pandas(con, df, 'MOVES')
 
 
 def _get_games_info(game_list):
     players, games, moves, openings = set(), set(), set(), set()
-    for game in game_list:
+    for game_id, game in enumerate(game_list):
         # Get players information
         players = players.union((game.headers['White'], game.headers['Black']))
         # games = games.union({})
-        
+
         # Get opening information
         try:
             openings = openings.union(((game.headers['Opening'], game.headers['ECO']), ))
         except Exception:
             opening_id = 'NULL'
-            
+
         # Get move information
-        # _parse_moves(game)
+        info_moves = str(game.mainline()).split()
+
+        for i in range(0, len(info_moves), 3):
+            try:
+                move_num, white, black = info_moves[i:i+3]
+                moves_to_add = (
+                    (game_id, f'{move_num[:-1]}w', white),
+                    (game_id, f'{move_num[:-1]}b', black),
+                )
+            except ValueError:
+                move_num, white = info_moves[i:i+2]
+                moves_to_add = ((game_id, f'{move_num[:-1]}w', white), )
+
+            moves = moves.union(moves_to_add)
 
     return players, games, moves, openings
 
 
-# def _parse_moves(game):
-#     info_moves = str(game.mainline()).split()
-#     moves = []
-#     for i in range(0, len(info_moves), 3):
-#         move_num, white, black = info_moves[i:i+3]
-#         moves.append(
-#             {'move_id': f'{move_num.}'}
-#             )
-    
+def _parse_moves(game):
+    info_moves = str(game.mainline()).split()
+    moves = set()
+    for i in range(0, len(info_moves), 3):
+        move_num, white, black = info_moves[i:i+3]
+        moves.union(
+            (
+                (move_num[:-1], )
+            )
+        )
+
 
 # TODO: Probably not used
 def get_players(game):
