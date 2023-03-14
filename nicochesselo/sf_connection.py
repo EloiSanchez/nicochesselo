@@ -123,5 +123,5 @@ def restart_database():
             print('Provide a valid answer.')
 
 
-def populate_database(n_users = 200, n_games = 100):
+def populate_database(n_users = 200, n_games = 400):
     add_games(lichess_api.get_default_games(n_users, n_games))

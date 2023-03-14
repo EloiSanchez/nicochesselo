@@ -1,3 +1,7 @@
-import sf_connection
+import streamlit as st
 
-sf_connection.populate_database(10, 20)
+"""
+# Welcome to NicoChessElo
+
+This application is a learning project created to unerstand the usage of APIs and the Python-Snowflake connection
+"""
