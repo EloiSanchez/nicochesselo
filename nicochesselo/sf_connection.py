@@ -4,12 +4,6 @@ import pandas as pd
 import lichess_api
 import os
 
-# os.environ["SNOWSQL_PWD"] = "ChessAPI_Elo"
-# os.environ["SNOWSQL_USR"] = "chess_user"
-# os.environ["SNOWSQL_ACC"] = "NE01301.switzerland-north.azure"
-# os.environ["SNOWSQL_WH"] = "CHESS_WH"
-# os.environ["SNOWSQL_DB"] = "CHESS_DB"
-# os.environ["SNOWSQL_SCH"] = "CHESS_SCH"
 
 con = snowflake.connector.connect(
     user='chess_user',
