@@ -13,6 +13,7 @@ con = snowflake.connector.connect(
     schema='CHESS_SCH'
 )
 
+cur = con.cursor()
 
 def add_games(game_list):
 
@@ -48,6 +49,19 @@ def add_moves(moves):
     write_pandas(con, df, 'MOVES')
 
 
+def _get_event(event_name):
+    event_name = event_name.lower()
+    if 'classical' in event_name:
+        return 'classical'
+    elif 'rapid' in event_name:
+        return 'rapid'
+    elif 'blitz' in event_name:
+        return 'blitz'
+    elif 'bullet' in event_name:
+        return 'bullet'
+    else:
+        event_name
+
 def _get_games_info(game_list):
     players, games, moves, openings = [], [], [], []
     total_games = len(game_list)
@@ -63,7 +77,7 @@ def _get_games_info(game_list):
 
             games.append(
                 (game_id,
-                game.headers['Event'],
+                _get_event(game.headers['Event']),
                 game.headers['White'],
                 game.headers['Black'],
                 game.headers['Opening'],
@@ -132,4 +146,54 @@ def restart_database():
 
 
 def populate_database(limit=-1):
-    add_games(lichess_api.get_games_from_file('data\lichess_db_standard_rated_2013-06.pgn', limit))
+    add_games(lichess_api.get_games_from_file(r'C:\Users\elois\Documents\nicochesselo\data\lichess_db_standard_rated_2013-06.pgn', limit))
+
+
+def find_games(username, color, results, gamemodes, dates, elos):
+    statement = "SELECT * FROM games WHERE 1=1\n"
+
+    if username != '':
+        if color == 'Any':
+            statement += f"AND (white_player_id ILIKE '{username}%' "
+            statement += f"OR black_player_id ILIKE '{username}%')\n"
+        elif color == 'Black':
+            statement += f"AND black_player_id ILIKE '{username}%'\n"
+        else:
+            statement += f"AND white_player_id ILIKE '{username}%'\n"
+
+    if results != []:
+        statement += f"AND result IN ({','.join(results)})\n"
+
+    if gamemodes != []:
+        statement += f"AND event IN ({','.join(gamemodes)})\n"
+
+    statement += f"AND game_date BETWEEN '{datetime.strftime(dates[0], '%Y-%m-%d')}' AND '{datetime.strftime(dates[1], '%Y-%m-%d')}'\n"
+    statement += f"AND (white_elo+black_elo)/2 BETWEEN {elos[0]} AND {elos[1]}"
+
+    try:
+        cur.execute(statement + ';')
+        df = cur.fetch_pandas_all()
+    except:
+        df = 'ERROR in query.'
+
+    return statement, df
+
+def get_game_ranges():
+    try:
+        cur.execute("""SELECT
+                           MIN(white_elo) as min_welo,
+                           MAX(white_elo) as max_welo,
+                           MIN(black_elo) as min_belo,
+                           MAX(black_elo) as max_belo,
+                           MIN(game_date) as min_date,
+                           MAX(game_date) as max_date
+                       FROM GAMES;""")
+        df = cur.fetch_pandas_all()
+    except:
+        df = 'ERROR in query.'
+    return {
+        'min_elo': min(int(df['MIN_WELO']), int(df['MIN_BELO'])),
+        'max_elo': max(int(df['MAX_WELO']), int(df['MAX_BELO'])),
+        'min_date': df['MIN_DATE'].iloc[0],
+        'max_date': df['MAX_DATE'].iloc[0]
+    }
