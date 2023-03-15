@@ -1,6 +1,7 @@
-import lichess_api
-import sf_connection
+import streamlit as st
 
-games = lichess_api.get_default_games(n_users = 2, n_games = 10)
+"""
+# Welcome to NicoChessElo
 
-sf_connection.add_games(games)
+This application is a learning project created to unerstand the usage of APIs and the Python-Snowflake connection
+"""
