@@ -80,3 +80,28 @@ def get_default_games(n_users=200, n_games=100):
 
 def get_player_info(username):
     return _resp_to_json(requests.get(f'https://lichess.org/api/user/{username}'))
+
+
+
+# -------------------------------- NR
+
+def get_games_ID(gameID):
+# usernames = [usernames] if type(usernames) == str else usernames
+
+    game_info_params = {
+    # 'max' : f'{1}',
+    # 'perfType' : ','.join(DEFAULT_GAME_TYPES),
+    'evals' : 'false',
+    'opening': 'true'
+    }
+
+    games = []
+
+    print(f'getting {gameID}')
+    games = _parse_games(
+     requests.get(f'https://lichess.org/game/export/{gameID}', params = game_info_params)
+    )
+    
+
+    print(f"TEST FRONT END {games}")
+    return games
