@@ -66,7 +66,7 @@ def get_streamers():
 
 
 # TODO: Get game by ID
-def get_games(usernames, n = 100):
+def get_games(usernames, limit = 100):
     """Gets `n` or all games of the players passed.
 
     Args:
@@ -80,10 +80,10 @@ def get_games(usernames, n = 100):
         _type_: _description_
     """
     usernames = [usernames] if type(usernames) == str else usernames
-    n = n if n > 0 else ''
+    limit = limit if limit > 0 else ''
 
     game_info_params = {
-        'max' : f'{n}',
+        'max' : f'{limit}',
         'perfType' : ','.join(DEFAULT_GAME_TYPES),
         'evals' : 'false',
         'opening': 'true'
@@ -91,35 +91,47 @@ def get_games(usernames, n = 100):
 
     games = []
     for user in usernames:
-        print(f'getting {user}')
-        games += _parse_games(
-            requests.get(f'https://lichess.org/api/games/user/{user}',
-                         params = game_info_params)
-        )
+        print(f'Getting games from {user}')
+        response = requests.get(f'https://lichess.org/api/games/user/{user}',
+                                params = game_info_params)
+        with io.StringIO(response.text) as file_handler:
+            games += _parse_games(file_handler)
     return games
 
 
-def _parse_games(response):
+def get_games_from_file(path, limit=-1):
+    with open(path, 'r') as file_handler:
+        print(f'Getting games from {path}')
+        games = _parse_games(file_handler, limit)
+    return games
+
+
+def _parse_games(handler, limit = -1):
     games = []
-    with io.StringIO(response.text) as games_text:
-        while True:
-            # TODO: Silence errors
-            game = pgn.read_game(games_text)
+    count = 0
 
-            if game is None:
-                break
+    print(f'Parsing games with limit {limit}')
+    while True:
+        # TODO: Silence errors
+        game = pgn.read_game(handler)
 
-            if len(game.errors) > 0:
-                continue
+        if game is None:
+            break
 
-            games.append(game)
+        if len(game.errors) > 0:
+            continue
+
+        games.append(game)
+        count += 1
+        if count == limit:
+            break
     return games
 
 
 def get_default_games(n_users=200, n_games=100):
     return get_games(
         get_leaderboard(n=n_users),
-        n=n_games
+        limit=n_games
         )
 
 
