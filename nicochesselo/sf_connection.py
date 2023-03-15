@@ -51,7 +51,7 @@ def add_moves(moves):
 def _get_games_info(game_list):
     players, games, moves, openings = [], [], [], []
     total_games = len(game_list)
-    print_values = [i for i in range(0, total_games, total_games // 20)]
+    print_values = [i for i in range(0, total_games, total_games // 5)]
     for game_num, game in enumerate(game_list):
         # Get players information
         players.append(game.headers['White'])
