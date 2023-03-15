@@ -65,7 +65,12 @@ def _get_event(event_name):
 def _get_games_info(game_list):
     players, games, moves, openings = [], [], [], []
     total_games = len(game_list)
-    print_values = [i for i in range(0, total_games, total_games // 5)]
+
+    if total_games > 5:
+        print_values = [i for i in range(0, total_games, total_games // 5)]
+    else:
+        print_values = range(game_num)
+
     for game_num, game in enumerate(game_list):
         # Get players information
         players.append(game.headers['White'])
