@@ -13,74 +13,83 @@ What should it do:
 - Get all or some games of a specific user
 - Introduce a game by hand introducing the game information and the list of moves
 """
-st.button('Restart Database', on_click=sf_connection.restart_database)
-st.button('Populate Databse', on_click=sf_connection.populate_database)
+#st.button('Restart Database', on_click=sf_connection.restart_database)
+#st.button('Populate Databse', on_click=sf_connection.populate_database)
+
+
+def opening_func():
+    eco,name = lichess_api.get_opening_by_moves(Moves) 
+    st.session_state.op_name = name; 
+    st.session_state.op_eco = eco; 
+
+def test_func(name, eco):
+
+    # if White_ID == Black_ID:
+    #     print ("Players ID must be different") #Do in streamlit 
+    # else:    
+        game_param = {'GAME_ID' : Game_Id, 'EVENT': Event,'WHITE_PLAYER_ID': White_ID, 'BLACK_PLAYER_ID':Black_ID,'OPENING_ID':Opening,
+                    'RESULT':Result, 'WHITE_ELO' :WhiteElo,'BLACK_ELO': BlackElo,'GAME_DATE': Date}
+        sf_connection.add_games_by_hand(game_param)
+
+        opening_param = {'OPENING_ID' : name, 'ECO' : eco}
+        sf_connection.add_openings_hand(opening_param)
+
 
 # --- WITH SUMBIT BUTTON
-
 col1, col2 = st.columns(2)
 
 with col1:
     st.header("Search by UserId")
-
     with st.form('Form1'):
         name =  st.text_input('Insert UserID',key ="input_text_user_sub")
         num_games = st.slider(f'How many games by the user?', 1, 130, 10)
         submit_user = st.form_submit_button('Submit 1')
 
 if submit_user:
-    sf_connection.add_games(lichess_api.get_games(name ,num_games))
+    get_game_ = lichess_api.get_games(name ,num_games)
+    if get_game_ == 0:
+         st.error("THIS USER DOESN'T EXISTS")
+    else:
+        sf_connection.add_games(get_game_)
+        #sf_connection.add_games(lichess_api.get_games(name ,num_games))
 
 with col2:
     st.header("Search by GameID")
     with st.form('Form2'):
-        Game = st.text_input('Insert GameID',key ="input_text" )
+        game = st.text_input('Insert GameID',key ="input_game" )
         submit_game = st.form_submit_button('Submit 1')
 
 if submit_game:
-     sf_connection.add_games(lichess_api.get_games_ID(st.session_state.input_text))
+    get_game_ = lichess_api.get_games_ID(st.session_state.input_game)
 
+    if get_game_ == 0:
+         st.error("THIS GAME DOESN'T EXISTS")
+    else:
+     sf_connection.add_games(get_game_)
 
 st.header("Insert a game by Hand")
     
-with st.form('Form3'):
-    Game_Id = st.text_input('Insert GameID',key ="input_gid" )
-    Event = st.selectbox('Type of game', ['rapid', 'bullet', 'blitz', 'classical'], key=1)
-    White_ID = st.text_input('Insert White player ID',key ="input_wid" )
-    Black_ID = st.text_input('Insert Black  player ID',key ="input_bid" )
-    Result = st.selectbox( '',['1-0', '0-1','1/2-1/2'], key=2)
-    WhiteElo = st.slider('White ELO', 1500, 2000, 1666)
-    BlackElo = st.slider('Black ELO', 1500, 2000, 1666)
-    Date = st.date_input( "Date of the game", datetime.date(2023, 1, 1))
-    Opening = st.selectbox('Opening', ['rapid', 'bullet', 'blitz', 'classical'], key=3);
-    Moves = st.text_input('Insert Moves',key ="input_mvs" )
-    submit_hand =  st.form_submit_button('Submit')
+Game_Id = st.text_input('Insert GameID',key ="input_gid" ,max_chars =8)
+Event = st.selectbox('Type of game', ['rapid', 'bullet', 'blitz', 'classical'], key=1)
+White_ID = st.text_input('Insert White player ID',key ="input_wid" ,max_chars=10 )
+Black_ID = st.text_input('Insert Black  player ID',key ="input_bid", max_chars=10 )
+Result = st.selectbox( '',['1-0', '0-1','1/2-1/2'], key=2)
+WhiteElo = st.slider('White ELO', 1500, 2000, 1666)
+BlackElo = st.slider('Black ELO', 1500, 2000, 1666)
+Date = st.date_input( "Date of the game", datetime.date(2023, 1, 1))
 
-if submit_hand:
- pass   
+st.header("Insert Moves and Discover the opening")
 
+if "op_name" not in st.session_state:
+    Opening = st.session_state.op_name = 'Wait for moves'
+        
+if "op_eco" not in st.session_state:
+    ECO =st.session_state.op_eco = '...'
 
-       
+Moves = st.text_input('Insert Moves',key ="input_mvs" )
+Opening = st.write("Opening name:", st.session_state.op_name)
+ECO  = st.write("Opening ECO: ", st.session_state.op_eco)
 
+opg_button = st.button("Find Opening", on_click=opening_func)
 
-
-# --- WITH CALLBACKS
-# def proc():
-#     sf_connection.add_games(lichess_api.get_games_ID(st.session_state.input_text))
-
-
-# def proc2():
-#     sf_connection.add_games(lichess_api.get_games(st.session_state.input_text_user ,10))
-
-# Game = st.text_input('Insert GameID',key ="input_text", on_change = proc )
-# User = st.text_input('Insert UserID',key ="input_text_user", on_change = proc2 )
-
-# num_games = st.slider(f'How many games by the user{st.session_state.input_text_user}?', 0, 130, 10)
-# #st.write("I'm ", age, 'years old')
-
-# # st.write('The current game  is', Game)
-# # User = st.text_input('Insert UserID')
-# # def proc():
-# # st.write(st.session_state.text_key)
-# # st.text_area('enter text', on_change=proc, key='text_key')
-# # st.text_input(label, value="Insert GameID", label_visibility="visible")
+submit_hand  = st.button("INSERT GAME", on_click= test_func)

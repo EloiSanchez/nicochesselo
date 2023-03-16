@@ -174,14 +174,12 @@ def get_games_ID(gameID):
 
 def get_opening_by_moves(moves):
     
-    # print(f"TEST FORMAT MOVES {moves}")
     response  = requests.get(f'https://explorer.lichess.ovh/masters?play={moves}')
     data = response.json()
     eco = data["opening"]["eco"]
     name = data["opening"]["name"]
     print(f"{eco},{name}")
 
-    #assemblo e return
  
     return eco,name
     
