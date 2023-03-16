@@ -4,6 +4,7 @@ import pandas as pd
 import lichess_api
 from datetime import datetime
 
+
 con = snowflake.connector.connect(
     user='chess_user',
     password='ChessAPI_Elo',
@@ -13,9 +14,8 @@ con = snowflake.connector.connect(
     schema='CHESS_SCH'
 )
 
+
 cur = con.cursor()
-
-
 
 
 def add_games(game_list):
@@ -23,7 +23,7 @@ def add_games(game_list):
     print(f'Preparing {len(game_list)} games to add to database')
 
     players, games, moves, openings = _get_games_info(game_list)
-    
+
     print(games, type(games))
 
     df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','GAME_DATE'))
@@ -38,7 +38,7 @@ def add_players(players):
     players = [players] if type(players) == str else players
 
     df = pd.DataFrame(players, columns=('PLAYER_ID',))
-    write_pandas(con, df, 'PLAYERS') 
+    write_pandas(con, df, 'PLAYERS')
 
 
 
@@ -46,12 +46,12 @@ def add_openings(openings):
     openings = [openings] if type(openings) == tuple else openings
 
     df = pd.DataFrame(openings, columns=('OPENING_ID', 'ECO'))
-    write_pandas(con, df, 'OPENINGS') 
+    write_pandas(con, df, 'OPENINGS')
 
 
 def add_moves(moves):
     df = pd.DataFrame(moves, columns=('GAME_ID','MOVE_ID', 'MOVE'))
-    write_pandas(con, df, 'MOVES') 
+    write_pandas(con, df, 'MOVES')
 
 def _get_event(event_name):
     event_name = event_name.lower()
@@ -167,12 +167,12 @@ def add_games_by_hand(game_hand):
     write_pandas(con, df, 'TEST_TAB')
     add_players_hand(game_hand['WHITE_PLAYER_ID'])
     add_players_hand(game_hand['BLACK_PLAYER_ID'])
-    
+
 
 def add_players_hand(players):
     players = {'PLAYER_ID' : players}
     df = pd.DataFrame(players, index=[1])
-    write_pandas(con, df, 'TEST_PL') 
+    write_pandas(con, df, 'TEST_PL')
 
 
 def add_openings_hand(openings):
@@ -180,12 +180,6 @@ def add_openings_hand(openings):
     openings ={'OPENING_ID': openings['name'] , 'ECO' :openings['eco']}
     df = pd.DataFrame(openings, index =[0])
     write_pandas(con, df, 'TEST_OP')
-
-
-# def add_moves_hand(moves):
-#     df = pd.DataFrame(moves, columns=('GAME_ID','MOVE_ID', 'MOVE'))
-#     write_pandas(con, df, 'TEST_MOVES')
-    add_games(lichess_api.get_games_from_file(r'C:\Users\elois\Documents\nicochesselo\data\lichess_db_standard_rated_2013-06.pgn', limit))
 
 
 def find_games(username, color, results, gamemodes, dates, elos):
