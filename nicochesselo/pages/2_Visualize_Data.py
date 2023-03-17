@@ -112,5 +112,8 @@ with opening_col2:
                         step=1,
                         value=8)
 
-fig4, df4 = figs.top_openings(df, n=n_openings, elos=elos)
-st.plotly_chart(fig4, use_container_width=True)
+try:
+    fig4, df4 = figs.top_openings(df, n=n_openings, elos=elos)
+    st.plotly_chart(fig4, use_container_width=True)
+except Exception:
+    """Error: Error plotting top openings"""
