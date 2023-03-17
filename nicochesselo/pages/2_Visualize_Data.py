@@ -1,20 +1,20 @@
 import streamlit as st
 import sf_connection
-from sf_connection import con
-import plotly.express as px
-import plotly.graph_objects as go
 import figures as figs
 from figures import frmt_label
 
 """
 # Data Visualization
 """
+
+# Get general data
 range_values = sf_connection.get_game_ranges()
 if 'df' not in st.session_state:
     df = None
 else:
     df = st.session_state['df']
 
+# Form in for getting games from SF
 with st.form('Query form'):
     row1_col1, row1_col2, row1_col3 = st.columns(3)
     row2_col1, row2_col2, row2_col3 = st.columns(3)
@@ -56,15 +56,17 @@ with st.form('Query form'):
 
     find_games = st.form_submit_button('Look for games')
 
+# When form is completed, execute query and get data from snowflake
 if find_games:
     statement, df = sf_connection.find_games(username_value, color_value,
                                              result_values, gamemode_values,
                                              date_values, elo_values)
     st.session_state['df'] = df
 
-
+# If data has been retrieved, make plots
 if df is not None:
 
+    # Aggregated plots selected by user
     agg_col1, agg_col2 = st.columns(2)
 
     with agg_col1:
@@ -84,10 +86,11 @@ if df is not None:
         fig2, df2 = figs.game_count(df, x_label2)
         st.plotly_chart(fig2, use_container_width=True)
 
-
+    # Elo distribution plot
     fig3, df3 = figs.elo_dist(df)
     st.plotly_chart(fig3, use_container_width=True)
 
+    # Top openings plot
     opening_col1, opening_col2 = st.columns(2)
     with opening_col1:
         elos = st.slider(label='ELO Range',

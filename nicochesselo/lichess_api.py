@@ -87,20 +87,20 @@ def get_games(usernames, limit = 100):
         'evals' : 'false',
         'opening': 'true'
     }
- 
+
     games = []
     for user in usernames:
         print(f'Getting games from {user}')
         response = requests.get(f'https://lichess.org/api/games/user/{user}',
                                 params = game_info_params)
-       
+
         if response.status_code != 200 :
-            ret_val = 0   
-        else: 
+            ret_val = 0
+        else:
             with io.StringIO(response.text) as file_handler:
                 games += _parse_games(file_handler)
-            ret_val = games     
-    
+            ret_val = games
+
     return ret_val
 
 
@@ -155,21 +155,21 @@ def get_games_ID(gameID):
     games = []
     print(f'getting {gameID}')
     response =  requests.get(f'https://lichess.org/game/export/{gameID}',params = game_info_params)
-      
+
     if response.status_code == 404 :
        ret_val = 0
-    else:    
+    else:
         with io.StringIO(response.text) as file_handler:
             games = _parse_games(file_handler)
-        ret_val = games    
- 
+        ret_val = games
+
     return ret_val
 
 
 
 
 def get_opening_by_moves(moves):
-    
+
     response  = requests.get(f'https://explorer.lichess.ovh/masters?play={moves}')
     data = response.json()
     eco = data["opening"]["eco"]
@@ -177,4 +177,3 @@ def get_opening_by_moves(moves):
     print(f"{eco},{name}")
 
     return eco,name
-    

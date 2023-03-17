@@ -3,8 +3,12 @@ from snowflake.connector.pandas_tools import write_pandas
 import pandas as pd
 import lichess_api
 from datetime import datetime
+import os
 
 
+file_dir =  os.path.dirname(os.path.realpath(__file__))
+
+# Get SF connection and cursor
 con = snowflake.connector.connect(
     user='chess_user',
     password='ChessAPI_Elo',
@@ -14,17 +18,21 @@ con = snowflake.connector.connect(
     schema='CHESS_SCH'
 )
 
-
 cur = con.cursor()
 
 
 def add_games(game_list):
+    """Addes a list of games to the SF database
 
+    Args:
+        game_list (list[chess.Game]): list of chess.Games to add to database
+    """
     print(f'Preparing {len(game_list)} games to add to database')
 
+    # Get the required information from the game list
     players, games, moves, openings = _get_games_info(game_list)
 
-    print(games, type(games))
+    # Add the data to the different tables
 
     df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','GAME_DATE'))
 
@@ -36,6 +44,11 @@ def add_games(game_list):
 
 
 def add_players(players):
+    """Adds player rows to players table
+
+    Args:
+        players (set[tuple]): set of tuples with the row information
+    """
     players = [players] if type(players) == str else players
 
     df = pd.DataFrame(players, columns=('PLAYER_ID',))
@@ -44,6 +57,11 @@ def add_players(players):
 
 
 def add_openings(openings):
+    """Adds opening rows to openings table
+
+    Args:
+        players (set[tuple]): set of tuples with the row information
+    """
     openings = [openings] if type(openings) == tuple else openings
 
     df = pd.DataFrame(openings, columns=('OPENING_ID', 'ECO'))
@@ -51,10 +69,23 @@ def add_openings(openings):
 
 
 def add_moves(moves):
+    """Adds move rows to moves table
+
+    Args:
+        players (set[tuple]): set of tuples with the row information
+    """
     df = pd.DataFrame(moves, columns=('GAME_ID','MOVE_ID', 'MOVE'))
     write_pandas(con, df, 'MOVES')
 
 def _get_event(event_name):
+    """Parses the event information and returns the value to be stored in SF
+
+    Args:
+        event_name (str): Event name
+
+    Returns:
+        str: cleaned event name
+    """
     event_name = event_name.lower()
     if 'classical' in event_name:
         return 'classical'
@@ -68,6 +99,15 @@ def _get_event(event_name):
         event_name
 
 def _get_games_info(game_list):
+    """Parses list of games in chess.Game format and obtains the tuples to be
+    added to the database
+
+    Args:
+        game_list (list[chess.Game]): list of games to be parsed
+
+    Returns:
+        tuple[set[tuple]]: parsed sets of tuples to be added to database
+    """
     players, games, moves, openings = [], [], [], []
 
     for game_num, game in enumerate(game_list):
@@ -124,31 +164,25 @@ def _get_games_info(game_list):
 
 
 def restart_database():
-    valid_answer = False
-    print('WARNING: This will delete all records from the database')
-    while not valid_answer:
-        answer = input('Are you sure? [Y/N] >> ').strip().lower()
-        if answer.startswith('n'):
-            valid_answer = True
-            print('Cancelled')
-            return
-
-        elif answer.startswith('y'):
-            valid_answer = True
-            try:
-                con.execute_string('TRUNCATE moves;')
-                con.execute_string('TRUNCATE players;')
-                con.execute_string('TRUNCATE games;')
-                con.execute_string('TRUNCATE openings;')
-                print('Database cleaned succesfully.')
-            except Exception:
-                print('There was an error cleaning up the database.')
-        else:
-            print('Provide a valid answer.')
+    """Deletes all record from the database"""
+    con.execute_string('TRUNCATE moves;')
+    con.execute_string('TRUNCATE players;')
+    con.execute_string('TRUNCATE games;')
+    con.execute_string('TRUNCATE openings;')
+    print('Database cleaned succesfully.')
 
 
 def populate_database(limit=-1):
-    add_games(lichess_api.get_games_from_file('data\lichess_db_standard_rated_2013-06.pgn', limit))
+    """Populated the database with a set of games obtained from a file
+    downloaded from the lichess database
+
+    Args:
+        limit (int, optional): Amount of games to get. If negative, gets
+        all games from the file. Defaults to -1.
+    """
+    data_path = os.path.join(file_dir,
+                             r"..\data\lichess_db_standard_rated_2013-06.pgn")
+    add_games(lichess_api.get_games_from_file(data_path, limit))
 
 
 def add_games_by_hand(game_hand):
@@ -177,6 +211,20 @@ def add_moves_hand(moves):
 
 
 def find_games(username, color, results, gamemodes, dates, elos):
+    """Queries the games databse to obtain a set of games that fulfil a set of
+    conditions
+
+    Args:
+        username (str): database user_id
+        color (str): color of the user_id player
+        results (tuple): end game results
+        gamemodes (tuple): different time modes
+        dates (tuple): range of time
+        elos (tuple): range of elos
+
+    Returns:
+        (str, pd.DataFrame): the statement used and the dataframe obtained
+    """
     statement = "SELECT * FROM games WHERE 1=1\n"
 
     if username != '':
@@ -206,6 +254,12 @@ def find_games(username, color, results, gamemodes, dates, elos):
     return statement, df
 
 def get_game_ranges():
+    """
+    Obtains the min and max values of the ranges input variables for the user
+
+    Returns:
+        dict: The min and max values to be used by streamlit
+    """
     try:
         cur.execute("""SELECT
                            MIN(white_elo) as min_welo,

@@ -3,6 +3,7 @@ import plotly.express as px
 import pandas as pd
 import streamlit as st
 
+# Plot parameters
 COLORS = {
     'w': 'rgb(255,255,255)',
     'b': 'rgb(64,71,73)',
@@ -17,12 +18,30 @@ RSLTS = {
 
 OPACITY = 0.7
 
+
 def frmt_label(label):
+    """Formats label for user visualization
+
+    Args:
+        label (str): a label
+
+    Returns:
+        str: a formatted label
+    """
     return label.replace('_', ' ').lower().replace('elo', 'ELO').strip("'")
 
 
 @st.cache_data
 def _get_elo(df, round_to = None):
+    """Creates a new column with the average ELO of the players of a game
+
+    Args:
+        df (pd.DataFrame): A games dataframe
+        round_to (int|Any, optional): Digit for rounding. Defaults to None.
+
+    Returns:
+        pd.Dataframe: A copy of the dataframe with the new column
+    """
     elo_df = df.copy()
     elo_df['ELO'] = (df['WHITE_ELO'] + df['BLACK_ELO']) / 2
 
@@ -32,7 +51,19 @@ def _get_elo(df, round_to = None):
     return elo_df
 
 @st.cache_data
-def _get_grouped_df(df, x_label, round_to=-2):
+def _get_grouped_df(df, x_label, round_to=None):
+    """Groups a dataframe in a way that is useful to be used for the
+    visualization functions
+
+    Args:
+        df (pd.Datafram): A games dataframe
+        x_label (str): grouping column to be used
+        round_to (int|Any, optional): Only used for x_label=ELO. See _get_elo().
+        Defaults to None.
+
+    Returns:
+        pd.Dataframe: a dataframe useful for visualization functions
+    """
     group_df = df.copy()
 
     if x_label == 'ELO':
@@ -44,6 +75,16 @@ def _get_grouped_df(df, x_label, round_to=-2):
 
 @st.cache_data
 def perc_results_by(df, x_label):
+    """Generates a figure that shows the percentage of games result grouped by
+    x_label
+
+    Args:
+        df (pd.DataFrame): A games dataframe
+        x_label (str): the column which will be used for grouping
+
+    Returns:
+        (plotly.Figure, pd.Dataframe): Resulting figure and grouped dataframe
+    """
     result_count_df = _get_grouped_df(df, x_label, -2)
 
     if x_label == 'ELO':
@@ -86,6 +127,15 @@ def perc_results_by(df, x_label):
 
 @st.cache_data
 def game_count(df, x_label):
+    """Generates a figure that shows the amount of games grouped by x_label
+
+    Args:
+        df (pd.DataFrame): A games dataframe
+        x_label (str): the column which will be used for grouping
+
+    Returns:
+        (plotly.Figure, pd.Dataframe): Resulting figure and grouped dataframe
+    """
     # Get right data
     game_count_df = _get_grouped_df(df, x_label)
 
@@ -127,23 +177,30 @@ def game_count(df, x_label):
 
 
 @st.cache_data
-def _get_played_openings(df):
-    return df[['OPENING_ID', 'GAME_ID']]\
-        .groupby(by=['OPENING_ID']).count()\
-            .reset_index().sort_values(by='GAME_ID', ascending=False)
-
-
-@st.cache_data
 def top_openings(df: pd.DataFrame, n=8, elos=None):
+    """Generates a figure that shows the results of the top played openings
+
+    Args:
+        df (pd.DataFrame): A games dataframe
+        n (int): How many openings to show
+        elos (int, int): The range of elos to consider
+
+    Returns:
+        (plotly.Figure, pd.Dataframe): Resulting figure and grouped dataframe
+    """
     op_df = _get_elo(df)
     op_df = op_df[(elos[0] <= op_df['ELO']) & (op_df['ELO'] <= elos[1])]
 
     # Get mainline
     op_df['OPENING_ID'] = op_df['OPENING_ID'].str.split(':').str[0]
 
-    # Get
-    top_op = _get_played_openings(op_df).head(n)['OPENING_ID'].to_list()
+    # Get top n openings
+    top_op = op_df[['OPENING_ID', 'GAME_ID']]\
+        .groupby(by=['OPENING_ID']).count()\
+            .reset_index().sort_values(by='GAME_ID', ascending=False)\
+                .head(n)['OPENING_ID'].to_list()
 
+    # Get info about the top n openings
     top_op_df = op_df[['OPENING_ID', 'GAME_ID', 'RESULT']]
     top_op_df['is_top'] = top_op_df.apply(lambda x: x.iloc[0] in top_op,
                                                 axis=1)
@@ -152,6 +209,7 @@ def top_openings(df: pd.DataFrame, n=8, elos=None):
     top_op_df = top_op_df.groupby(by=['OPENING_ID', 'RESULT']).count()\
         .reset_index()
 
+    # Plot the top n openings
     fig = px.histogram(
         top_op_df,
         x='OPENING_ID',
@@ -181,6 +239,15 @@ def top_openings(df: pd.DataFrame, n=8, elos=None):
 
 @st.cache_data
 def elo_dist(df):
+    """Generates a figure that shows the ELO distribution of the games
+    considered
+
+    Args:
+        df (pd.DataFrame): A games dataframe
+
+    Returns:
+        (plotly.Figure, pd.Dataframe): Resulting figure and grouped dataframe
+    """
     elo_dist_df = _get_elo(df)
     fig = px.histogram(elo_dist_df,
                        x='ELO',
