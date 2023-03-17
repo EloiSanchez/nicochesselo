@@ -144,11 +144,7 @@ def get_default_games(n_users=200, n_games=100):
 def get_player_info(username):
     return _resp_to_json(requests.get(f'https://lichess.org/api/user/{username}'))
 
-
-# -------------------------------- NR
-
 def get_games_ID(gameID):
-
     game_info_params = {
     # 'max' : f'{1}',
     # 'perfType' : ','.join(DEFAULT_GAME_TYPES),
@@ -180,6 +176,5 @@ def get_opening_by_moves(moves):
     name = data["opening"]["name"]
     print(f"{eco},{name}")
 
- 
     return eco,name
     

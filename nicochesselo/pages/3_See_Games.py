@@ -1,13 +1,24 @@
 import streamlit as st
-import chess
 
-"""
-# Here you can visualize data
+if 'but_a' not in st.session_state:
+    st.session_state.disabled = True
 
-Here you will be able to look at the data.
+Game_Id = st.text_input('Insert GameID',key ="input_gid" ,max_chars =8)
 
-What should it do:
-- have a chess set
-"""
+button_a = st.button('a', key='but_a')
 
-chess.Board()
+button_b = st.button('b', key='but_b')
+
+button_c = st.button('c', key='but_c', disabled=st.session_state.disabled)
+
+st.write(button_a, button_b, button_c)
+
+
+if len('input_gid')>0:
+    st.write("clicked A")
+    st.session_state.disabled = False
+else:
+    st.session_state.disabled = True
+
+# if button_b:
+#     st.write('clicked B')

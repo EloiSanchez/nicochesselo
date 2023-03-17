@@ -28,10 +28,11 @@ def add_games(game_list):
 
     df = pd.DataFrame(games, columns=('GAME_ID','EVENT', 'WHITE_PLAYER_ID','BLACK_PLAYER_ID','OPENING_ID','RESULT','WHITE_ELO','BLACK_ELO','GAME_DATE'))
 
-    write_pandas(con, df, 'TEST_TAB')
-    # add_players(players)
-    # add_openings(openings)
-    # add_moves(moves)
+    write_pandas(con, df, 'GAMES')
+    add_players(players)
+    add_openings(openings)
+    add_moves(moves)
+    
 
 
 def add_players(players):
@@ -68,12 +69,6 @@ def _get_event(event_name):
 
 def _get_games_info(game_list):
     players, games, moves, openings = [], [], [], []
-    total_games = len(game_list)
-
-    if total_games > 5:
-        print_values = [i for i in range(0, total_games, total_games // 5)]
-    else:
-        print_values = range(game_num)
 
     for game_num, game in enumerate(game_list):
         # Get players information
@@ -116,8 +111,6 @@ def _get_games_info(game_list):
 
                 [moves.append(move) for move in moves_to_add]
 
-            # if game_num in print_values:
-            #     print(f'Prepared {game_num} games out of {total_games}')
         except Exception:
             pass
 
@@ -158,28 +151,29 @@ def populate_database(limit=-1):
     add_games(lichess_api.get_games_from_file('data\lichess_db_standard_rated_2013-06.pgn', limit))
 
 
-
-# -------------- NR
-
 def add_games_by_hand(game_hand):
-    # print(f" passo di qui???? {game_hand['WHITE_PLAYER_ID']}")
     df = pd.DataFrame(game_hand, index=[0])
-    write_pandas(con, df, 'TEST_TAB')
-    add_players_hand(game_hand['WHITE_PLAYER_ID'])
+    write_pandas(con, df, 'GAMES')
+    add_players_hand(game_hand['WHITE_PLAYER_ID'])    
     add_players_hand(game_hand['BLACK_PLAYER_ID'])
 
 
 def add_players_hand(players):
     players = {'PLAYER_ID' : players}
     df = pd.DataFrame(players, index=[1])
-    write_pandas(con, df, 'TEST_PL')
+    write_pandas(con, df, 'PLAYERS')
 
 
-def add_openings_hand(openings):
-    print("WTF",openings)
-    openings ={'OPENING_ID': openings['name'] , 'ECO' :openings['eco']}
+def add_openings_hand(opening_name, opening_eco):
+    openings ={'OPENING_ID': opening_name , 'ECO' :opening_eco}
     df = pd.DataFrame(openings, index =[0])
-    write_pandas(con, df, 'TEST_OP')
+    write_pandas(con, df, 'OPENINGS')
+
+
+def add_moves_hand(moves):    
+    df = pd.DataFrame(moves, index =[0])
+    write_pandas(con, df, 'MOVES')
+
 
 
 def find_games(username, color, results, gamemodes, dates, elos):
@@ -230,3 +224,9 @@ def get_game_ranges():
         'min_date': df['MIN_DATE'].iloc[0],
         'max_date': df['MAX_DATE'].iloc[0]
     }
+
+
+
+
+
+
