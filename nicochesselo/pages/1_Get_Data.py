@@ -11,11 +11,6 @@ import pandas as pd
 Here you will be able to look for specific games, whether by ID or by user and load them into the database.
 
 """
-if 'input_mvs' not in st.session_state:
-    st.session_state.disabled = True
-
-if 'input_gid' not in st.session_state:
-    st.session_state.disabled_add_game = True
 
 def uploading_func():
     """"Adds a hand-added game with related opening, players and moves
@@ -59,8 +54,8 @@ def opening_func():
     st.session_state.op_eco = ECO;
 
 
-"""Button to Populate the Database
-"""
+#Button to Populate the Database
+
 st.button('Populate Databse', on_click=sf_connection.populate_database)
 
 if "op_name" not in st.session_state:
@@ -72,8 +67,8 @@ if "op_eco" not in st.session_state:
 col1, col2 = st.columns(2)
 
 with col1:
-    """Panel for searching for matches based on PlayerID
-    """
+    #Panel for searching for matches based on PlayerID
+    
     st.header("Search by UserId")
     with st.form('Form1'):
         name =  st.text_input('Insert UserID',key ="input_text_user_sub")
@@ -88,8 +83,8 @@ if submit_user:
         sf_connection.add_games(get_game_)
 
 with col2:
-    """Panel for searching for matches based on GameID
-    """
+    #Panel for searching for matches based on GameID
+    
     st.header("Search by GameID")
     with st.form('Form2'):
         game = st.text_input('Insert GameID',key ="input_game" )
@@ -111,8 +106,8 @@ col4, col3 = st.columns(2)
 with st.form('Form3'):
 
     with col4:
-        """Panel for look up for the Opening from the moves
-        """
+        #Panel for look up for the Opening from the moves
+        
         st.header("Search Opening")
 
         Moves = st.text_input('Insert Moves in UCI format (ex-d2d4,d7d5,c2c4,c7c6,c4d5)',key ="input_mvs" )
@@ -120,17 +115,11 @@ with st.form('Form3'):
         st.write("Opening ECO: ", st.session_state.op_eco)
         
 
-        opg_button = st.button("Find Opening", on_click=opening_func, disabled=st.session_state.disabled)
+        opg_button = st.button("Find Opening", on_click=opening_func)
         
-        if len("input_mvs") > 0:
-            st.session_state.disabled = False
-        else:
-            st.session_state.disabled = True
-
-
     with col3:
-        """Panel for entering a game 
-        """
+        #Panel for entering a game 
+        
         st.header("Insert Game params ")
 
         Game_Id = st.text_input('Insert GameID',key ="input_gid" ,max_chars =8)
@@ -142,18 +131,14 @@ with st.form('Form3'):
         BlackElo = st.slider('Black ELO', 1500, 3000, 1678)
         Date = st.date_input( "Date of the game", datetime.date(2023, 1, 1))
 
-    submit_game_h = st.form_submit_button('Submit Game',disabled= st.session_state.disabled_add_game)
+    submit_game_h = st.form_submit_button('Submit Game')
 
-    if len('input_gid')>0 and len('input_wid') :
-        st.session_state.disabled_add_game = False
-    else:
-        st.session_state.disabled_add_game = True
 
     if submit_game_h:
         uploading_func()            
 
-"""Button to Restart the Database
-"""
+#Button to Restart the Database
+
 st.button('Restart Database', on_click=sf_connection.restart_database)
 
 
