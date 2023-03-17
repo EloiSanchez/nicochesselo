@@ -8,7 +8,12 @@ from figures import frmt_label
 """
 
 # Get general data
-range_values = sf_connection.get_game_ranges()
+try:
+    range_values = sf_connection.get_game_ranges()
+except ValueError:
+    """The database is empty. Add values in Get Games page."""
+    exit()
+
 if 'df' not in st.session_state:
     df = None
 else:
@@ -59,52 +64,53 @@ with st.form('Query form'):
 # When form is completed, execute query and get data from snowflake
 if find_games:
     statement, df = sf_connection.find_games(username_value, color_value,
-                                             result_values, gamemode_values,
-                                             date_values, elo_values)
+                                            result_values, gamemode_values,
+                                            date_values, elo_values)
     st.session_state['df'] = df
 
-# If data has been retrieved, make plots
-if df is not None:
+# If data is not retrieved, stop script
+if df is None:
+    exit()
 
-    # Aggregated plots selected by user
-    agg_col1, agg_col2 = st.columns(2)
+# Aggregated plots selected by user
+agg_col1, agg_col2 = st.columns(2)
 
-    with agg_col1:
-        x_label1 = st.selectbox(label='x axis',
-                                options=("GAME_DATE", "ELO", "EVENT"),
-                                format_func=frmt_label,
-                                key='x_label1')
+with agg_col1:
+    x_label1 = st.selectbox(label='x axis',
+                            options=("GAME_DATE", "ELO", "EVENT"),
+                            format_func=frmt_label,
+                            key='x_label1')
 
-        fig1, df1 = figs.perc_results_by(df, x_label1)
-        st.plotly_chart(fig1, use_container_width=True)
+    fig1, df1 = figs.perc_results_by(df, x_label1)
+    st.plotly_chart(fig1, use_container_width=True)
 
-    with agg_col2:
-        x_label2 = st.selectbox(label='x axis',
-                                options=("GAME_DATE", "ELO", "EVENT"),
-                                format_func=frmt_label,
-                                key='x_label2')
-        fig2, df2 = figs.game_count(df, x_label2)
-        st.plotly_chart(fig2, use_container_width=True)
+with agg_col2:
+    x_label2 = st.selectbox(label='x axis',
+                            options=("GAME_DATE", "ELO", "EVENT"),
+                            format_func=frmt_label,
+                            key='x_label2')
+    fig2, df2 = figs.game_count(df, x_label2)
+    st.plotly_chart(fig2, use_container_width=True)
 
-    # Elo distribution plot
-    fig3, df3 = figs.elo_dist(df)
-    st.plotly_chart(fig3, use_container_width=True)
+# Elo distribution plot
+fig3, df3 = figs.elo_dist(df)
+st.plotly_chart(fig3, use_container_width=True)
 
-    # Top openings plot
-    opening_col1, opening_col2 = st.columns(2)
-    with opening_col1:
-        elos = st.slider(label='ELO Range',
-                        min_value=round(range_values['min_elo']-5, -1),
-                        max_value=round(range_values['max_elo']+5, -1),
-                        value=(range_values['min_elo'], range_values['max_elo']),
-                        step=50)
+# Top openings plot
+opening_col1, opening_col2 = st.columns(2)
+with opening_col1:
+    elos = st.slider(label='ELO Range',
+                    min_value=round(range_values['min_elo']-5, -1),
+                    max_value=round(range_values['max_elo']+5, -1),
+                    value=(range_values['min_elo'], range_values['max_elo']),
+                    step=50)
 
-    with opening_col2:
-        n_openings = st.slider(label='Number of openings',
-                            min_value=3,
-                            max_value=10,
-                            step=1,
-                            value=8)
+with opening_col2:
+    n_openings = st.slider(label='Number of openings',
+                        min_value=3,
+                        max_value=10,
+                        step=1,
+                        value=8)
 
-    fig4, df4 = figs.top_openings(df, n=n_openings, elos=elos)
-    st.plotly_chart(fig4, use_container_width=True)
+fig4, df4 = figs.top_openings(df, n=n_openings, elos=elos)
+st.plotly_chart(fig4, use_container_width=True)
