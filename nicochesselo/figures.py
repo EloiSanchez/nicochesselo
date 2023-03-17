@@ -137,7 +137,7 @@ def game_count(df, x_label):
         (plotly.Figure, pd.Dataframe): Resulting figure and grouped dataframe
     """
     # Get right data
-    game_count_df = _get_grouped_df(df, x_label)
+    game_count_df = _get_grouped_df(df, x_label, -1)
 
     # Create figure and plot
     fig = go.Figure()
