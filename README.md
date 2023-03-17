@@ -6,6 +6,8 @@ This application is a 4-days learning project created to understand the usage of
 
 The data is retreived either from a PGN file (obtained from the [Lichess Database](https://database.lichess.org/)). It can also retrieve specific games or a set of games from a user using the [Lichess API](https://lichess.org/api) in the Get Data page and visualize statistics of the stored games in the Visualize Data page.
 
+The data is then stored in [Snowflake](https://www.snowflake.com/en/). The architecture (ERDs) of the database can be seen in the `figures` directory.
+
 ## Usage
 
 Go to the directory of your preference and execute clone the repository.
@@ -26,7 +28,13 @@ Create a new conda's environment with Python 3.11
 conda create --name nicochesselo python=3.11
 ```
 
-and activate it. Once the environment is active, execute the following commands
+and activate it.
+
+```bash
+conda activate nicochesselo
+```
+
+Once the environment is active, execute the following commands
 
 ```bash
 pip install "snowflake-connector-python[pandas]"
