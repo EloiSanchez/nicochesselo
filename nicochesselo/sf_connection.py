@@ -3,7 +3,10 @@ from snowflake.connector.pandas_tools import write_pandas
 import pandas as pd
 import lichess_api
 from datetime import datetime
+import os
 
+
+file_dir =  os.path.dirname(os.path.realpath(__file__))
 
 # Get SF connection and cursor
 con = snowflake.connector.connect(
@@ -184,7 +187,9 @@ def populate_database(limit=-1):
         limit (int, optional): Amount of games to get. If negative, gets
         all games from the file. Defaults to -1.
     """
-    add_games(lichess_api.get_games_from_file('data\lichess_db_standard_rated_2013-06.pgn', limit))
+    data_path = os.path.join(file_dir,
+                             r"..\data\lichess_db_standard_rated_2013-06.pgn")
+    add_games(lichess_api.get_games_from_file(data_path, limit))
 
 
 
