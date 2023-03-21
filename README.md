@@ -1,5 +1,7 @@
 # NicoChessElo
 
+**Note:** This application cannot be run anymore. To have a feel of what it looked like initially, check the [screenshots page](https://github.com/EloiSanchez/nicochesselo/tree/main/screenshots).
+
 This application is a 4-days learning project created to understand the usage of APIs and the Python-Snowflake connection.
 
 ## How does it work
