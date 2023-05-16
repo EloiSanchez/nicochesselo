@@ -1,6 +1,6 @@
 # NicoChessElo
 
-**Note:** This application cannot be run anymore. To have a feel of what it looked like initially, check the [screenshots page](https://github.com/EloiSanchez/nicochesselo/tree/main/screenshots).
+**Note:** This application cannot be run anymore. To have a feel of what it looked like initially, check the [screenshots page](https://github.com/EloiSanchez/nicochesselo/tree/main/screenshots) or see below.
 
 This application is a 4-days learning project created to understand the usage of APIs and the Python-Snowflake connection.
 
@@ -56,6 +56,16 @@ streamlit run nicochesselo/NicoChessElo.py    # Linux
 ### Optional
 
 If the database is empty and must be populated, use [PeaZip](https://peazip.github.io/) (or something with similar functionalities) to extract the compressed PGN file stored in the `data` direcory. Do not change the name of the file.
+
+## Screenshots
+
+![Vizualization 1](https://github.com/EloiSanchez/nicochesselo/blob/main/screenshots/Visualize_data_page_1.png)
+
+![Visualization 2](https://github.com/EloiSanchez/nicochesselo/blob/main/screenshots/Visualize_data_page_2.png)
+
+![Vizualization 3](https://github.com/EloiSanchez/nicochesselo/blob/main/screenshots/Visualize_data_page_3.png)
+
+![Vizualization 4](https://github.com/EloiSanchez/nicochesselo/blob/main/screenshots/Visualize_data_page_4png)
 
 ## About us
 
